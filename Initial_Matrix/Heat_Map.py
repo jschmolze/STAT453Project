@@ -18,8 +18,19 @@ labels = df.columns.to_list()
 # 2) Create heatmap
 # -------------------
 
-plt.figure(figsize=(12, 10))
-plt.imshow(matrix, cmap="viridis", aspect="auto", interpolation="nearest")
+plt.figure(figsize=(14, 12))
+
+plt.imshow(
+    matrix,
+    cmap="viridis",
+    aspect='equal',
+    interpolation='none'
+)
+
+plt.title("JPM Transition Probability Matrix by % Return Bin", fontsize=14, weight="bold", pad=15)
+plt.xlabel("Next Day Return Interval (%)", fontsize=12)
+plt.ylabel("Today Return Interval (%)", fontsize=12)
+
 
 plt.title("JPM Transition Probability Matrix by % Return Bin", fontsize=14, weight="bold", pad=15)
 plt.xlabel("Next Day Return Interval (%)", fontsize=12)
