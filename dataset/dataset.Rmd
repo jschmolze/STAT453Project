@@ -25,7 +25,7 @@ cal = bizdays::calendars()[["Brazil/ANBIMA"]]
 
 ```{r}
 # 57 features -> 31 features
-JPM_balance_sheet = read_csv("data/BalanceSheetJPM.csv")
+JPM_balance_sheet = read_csv("../raw_data/Original/BalanceSheetJPM.csv")
 JPM_balance_sheet = na.omit(JPM_balance_sheet) 
 JPM_balance_sheet = JPM_balance_sheet %>% mutate(across(-1, as.character)) %>%  pivot_longer(
     cols = -1,
@@ -45,10 +45,11 @@ JPM_balance_sheet = JPM_balance_sheet %>% mutate(across(-1, as.character)) %>%  
   ))
 JPM_balance_sheet
 ```
+
 ```{r}
 # YTD
 # 73 features -> 41 features
-JPM_cash_flow = read_csv("data/CashFlowJPM.csv") 
+JPM_cash_flow = read_csv("../raw_data/Original/CashFlowJPM.csv") 
 JPM_cash_flow = na.omit(JPM_cash_flow)
 
 JPM_cash_flow = JPM_cash_flow  %>% mutate(across(-1, as.character)) %>% pivot_longer(
@@ -83,10 +84,13 @@ JPM_cash_flow = JPM_cash_flow %>% arrange(Year_Quarter) %>% slice(5:n()) %>% mut
       .x - lag(.x)        # otherwise, subtract previous quarter
       ))
   ) %>% ungroup() %>% select(!Year)
+
+JPM_cash_flow
 ```
+
 ```{r}
 # No features lost
-FED_funds = read_csv("data/FEDFUNDS.csv") 
+FED_funds = read_csv("../raw_data/Original/FEDFUNDS.csv") 
 FED_funds = na.omit(FED_funds)
 
 FED_funds = FED_funds %>% 
@@ -97,10 +101,11 @@ FED_funds = FED_funds %>%
   ungroup()
 FED_funds
 ```
+
 ```{r}
 # YTD
 # 53 features -> 31 features
-JPM_income = read_csv("data/IncomeStatementJPM.csv") 
+JPM_income = read_csv("../raw_data/Original/IncomeStatementJPM.csv") 
 JPM_income = na.omit(JPM_income)
 
 JPM_income = JPM_income %>% mutate(across(-1, as.character)) %>% pivot_longer(
@@ -137,23 +142,111 @@ JPM_income = JPM_income %>% arrange(Year_Quarter) %>% slice(5:n()) %>% mutate(
       ))
   ) %>% ungroup() %>% select(!Year)
 
+JPM_income
+
+```
+```{r}
+# 57 features -> 31 features
+JPM_balance_sheet = read_csv("../raw_data/Original/BalanceSheetJPM.csv")
+JPM_balance_sheet = na.omit(JPM_balance_sheet) 
+JPM_balance_sheet = JPM_balance_sheet %>% mutate(across(-1, as.character)) %>%  pivot_longer(
+    cols = -1,
+    names_to = "Year_Quarter",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = 1,  
+    values_from = value
+  ) %>%
+  mutate(Year_Quarter = case_when(
+    grepl("SEP", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q3"),
+    grepl("JUN", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q2"),
+    grepl("MAR", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q1"),
+    grepl("DEC", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q4"),
+    TRUE ~ Year_Quarter
+  ))
+JPM_balance_sheet
+```
+
+```{r}
+JPM_ratios = read_csv("../raw_data/Diagnostic/RatiosJPM.csv")
+JPM_ratios = na.omit(JPM_ratios)
+JPM_ratios = JPM_ratios %>% mutate(across(-1, as.character)) %>%  pivot_longer(
+    cols = -1,
+    names_to = "Year_Quarter",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = 1,  
+    values_from = value
+  ) %>%
+  mutate(Year_Quarter = case_when(
+    grepl("SEP", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q3"),
+    grepl("JUN", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q2"),
+    grepl("MAR", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q1"),
+    grepl("DEC", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q4"),
+    TRUE ~ Year_Quarter
+  ))
+```
+```{r}
+JPM_key = read_csv("../raw_data/Diagnostic/KeyItemsJPM_Interpolated.csv")
+JPM_key = na.omit(JPM_key)
+JPM_key = JPM_key %>% mutate(across(-1, as.character)) %>%  pivot_longer(
+    cols = -1,
+    names_to = "Year_Quarter",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = 1,  
+    values_from = value
+  ) %>%
+  mutate(Year_Quarter = case_when(
+    grepl("SEP", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q3"),
+    grepl("JUN", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q2"),
+    grepl("MAR", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q1"),
+    grepl("DEC", Year_Quarter) ~ paste0("20", sub(".*'(\\d+)", "\\1", Year_Quarter), "-Q4"),
+    TRUE ~ Year_Quarter
+  ))
+```
+```{r}
+HYBond = read_csv("../raw_data/Original/HYBond_interpolated.csv")
+HYBond = na.omit(HYBond)
+HYBond = HYBond %>% rename(Date = observation_date, HY_bond_rate = BAMLH0A0HYM2EY)
+HYBond
+```
+```{r}
+IgBond = read_csv("../raw_data/Original/IgBond.csv")
+IgBond = na.omit(IgBond)
+IgBond = IgBond %>% rename(Date = observation_date, IG_bond_rate = BAMLC0A4CBBBEY)
+IgBond
 ```
 
 
 
 ```{r}
-JPM = read_csv("data/PriceHistoryJPM.csv")
+JPM = read_csv("../raw_data/Original/PriceHistoryJPM.csv")
 # Fill in dates to identify quarters
 JPM = JPM %>% mutate(Date = offset(as.Date("2025-11-02"), -(0:(n()-1)), cal), Year_Quarter = paste0(year(Date), "-Q", quarter(Date)))
 JPM = na.omit(JPM %>% select(Date, Year_Quarter, everything())) # Remove rows with NA values (No value generation for now)
+```
 
+```{r}
 # Merge the datasets
 JPM = JPM %>%
   inner_join(JPM_balance_sheet, by = "Year_Quarter") %>%
   inner_join(JPM_cash_flow, by = "Year_Quarter") %>%
   inner_join(FED_funds, by = "Year_Quarter") %>%
-  inner_join(JPM_income, by = "Year_Quarter")
+  inner_join(JPM_income, by = "Year_Quarter") %>%
+  inner_join(JPM_ratios, by = "Year_Quarter") %>% 
+  inner_join(JPM_key, by = "Year_Quarter") %>%
+  inner_join(HYBond, by="Date") %>%
+  inner_join(IgBond, by="Date")
+  
+
+JPM = na.omit(JPM)
 ```
+
+
 ```{r}
 JPM <- JPM %>%
   arrange(Date) %>% 
@@ -166,56 +259,90 @@ JPM <- JPM %>%
   )
 
 JPM = JPM %>% select(Date, Year_Quarter, Price, Percent_change_backward, Percent_change_forward, everything()) %>% drop_na()
-
 JPM
 ```
 
 ```{r}
-bin_return <- function(x) {
+bin_return = function(x) {
   case_when(
-    x < -10                        ~ 1,
-    x >= -9    & x <= -8           ~ 2,
-    x >= -7    & x <= -6           ~ 3,
-    x >= -5    & x <= -4.5         ~ 4,
-    x >= -4    & x <= -3.5         ~ 5,
-    x >= -3    & x <= -2.5         ~ 6,
-    x >= -2.05 & x <= -1.85        ~ 7,
-    x >= -1.65 & x <= -1.46        ~ 8,
-    x >= -1.26 & x <= -1.06        ~ 9,
-    x >= -1.05 & x <= -0.95        ~ 10,
-    x >= -0.85 & x <= -0.75        ~ 11,
-    x >= -0.65 & x <= -0.55        ~ 12,
-    x >= -0.45 & x <= -0.35        ~ 13,
-    x >= -0.25 & x <= -0.15        ~ 14,
-    x >= -0.05 & x <=  0.05        ~ 15,
-    x >=  0.15 & x <=  0.25        ~ 16,
-    x >=  0.35 & x <=  0.45        ~ 17,
-    x >=  0.55 & x <=  0.65        ~ 18,
-    x >=  0.75 & x <=  0.85        ~ 19,
-    x >=  0.95 & x <=  1.05        ~ 20,
-    x >=  1.06 & x <=  1.26        ~ 21,
-    x >=  1.46 & x <=  1.65        ~ 22,
-    x >=  1.85 & x <=  2.05        ~ 23,
-    x >=  2.55 & x <=  3.05        ~ 24,
-    x >=  3.55 & x <=  4.05        ~ 25,
-    x >=  4.55 & x <=  5           ~ 26,
-    x >=  6    & x <=  7           ~ 27,
-    x >=  8    & x <=  9           ~ 28,
-    x >  10                        ~ 29,
-    TRUE                           ~ NA_integer_
+    x < -10               ~ 1,
+    x >= -10 & x < -9     ~ 2,
+    x >= -9  & x < -8     ~ 3,
+    x >= -8  & x < -7     ~ 4,
+    x >= -7  & x < -6     ~ 5,
+    x >= -6  & x < -5     ~ 6,
+    x >= -5  & x < -4.5   ~ 7,
+    x >= -4.5 & x < -4    ~ 8,
+    x >= -4   & x < -3.5  ~ 9,
+    x >= -3.5 & x < -3    ~ 10,
+    x >= -3   & x < -2.5  ~ 11,
+    x >= -2.5 & x < -2.05 ~ 12,
+    x >= -2.05 & x < -1.85 ~ 13,
+    x >= -1.85 & x < -1.65 ~ 14,
+    x >= -1.65 & x < -1.45 ~ 15,
+    x >= -1.45 & x < -1.25 ~ 16,
+    x >= -1.25 & x < -1.05 ~ 17,
+    x >= -1.05 & x < -0.95 ~ 18,
+    x >= -0.95 & x < -0.85 ~ 19,
+    x >= -0.85 & x < -0.75 ~ 20,
+    x >= -0.75 & x < -0.65 ~ 21,
+    x >= -0.65 & x < -0.55 ~ 22,
+    x >= -0.55 & x < -0.45 ~ 23,
+    x >= -0.45 & x < -0.35 ~ 24,
+    x >= -0.35 & x < -0.25 ~ 25,
+    x >= -0.25 & x < -0.15 ~ 26,
+    x >= -0.15 & x < -0.05 ~ 27,
+    x >= -0.05 & x < 0.05  ~ 28,
+    x >= 0.05  & x < 0.15  ~ 29,
+    x >= 0.15  & x < 0.25  ~ 30,
+    x >= 0.25  & x < 0.35  ~ 31,
+    x >= 0.35  & x < 0.45  ~ 32,
+    x >= 0.45  & x < 0.55  ~ 33,
+    x >= 0.55  & x < 0.65  ~ 34,
+    x >= 0.65  & x < 0.75  ~ 35,
+    x >= 0.75  & x < 0.85  ~ 36,
+    x >= 0.85  & x < 0.95  ~ 37,
+    x >= 0.95  & x < 1.05  ~ 38,
+    x >= 1.05  & x < 1.25  ~ 39,
+    x >= 1.25  & x < 1.45  ~ 40,
+    x >= 1.45  & x < 1.65  ~ 41,
+    x >= 1.65  & x < 1.85  ~ 42,
+    x >= 1.85  & x < 2.05  ~ 43,
+    x >= 2.05  & x < 2.55  ~ 44,
+    x >= 2.55  & x < 3.05  ~ 45,
+    x >= 3.05  & x < 3.55  ~ 46,
+    x >= 3.55  & x < 4.05  ~ 47,
+    x >= 4.05  & x < 4.55  ~ 48,
+    x >= 4.55  & x < 5     ~ 49,
+    x >= 5     & x < 6     ~ 50,
+    x >= 6     & x < 7     ~ 51,
+    x >= 7     & x < 8     ~ 52,
+    x >= 8     & x < 9     ~ 53,
+    x >= 9     & x < 10    ~ 54,
+    x > 10                 ~ 55,
+    TRUE ~ NA_integer_
   )
 }
 
-bins <- JPM %>%
-  transmute(
-    Date,
-    Percent_change_backward,
-    Percent_change_forward,
-    Backward_Bin = bin_return(Percent_change_backward),
-    Forward_Bin  = bin_return(Percent_change_forward)
-  )
 
-labels = bins %>% select(Forward_bin)
+JPM = JPM %>% mutate(
+  Backward_Bin = bin_return(Percent_change_backward), 
+  Forward_Bin  = bin_return(Percent_change_forward)
+  )
+label = JPM %>% select(Forward_Bin)
+
+JPM <- JPM %>%
+  select(
+    Date,
+    Year_Quarter,
+    Price,
+    Percent_change_backward,
+    Backward_Bin,
+    everything(),
+    -Forward_Bin,
+    -Percent_change_forward
+  )
+JPM
 ```
 
 
@@ -236,12 +363,15 @@ JPM
 
 ```{r}
 # Final datasets
-JPM_final = JPM %>% mutate(index = row_number()) %>% select(index, everything())
-JPM_final
-Percent_change
+JPM= JPM %>% mutate(index = row_number()) %>% select(index, everything())
+JPM
 ```
+
 ```{r}
-write.csv(Pe, "train.csv", row.names = FALSE)
+write.csv(JPM, "train_diagnostic.csv", row.names = FALSE)
+write.csv(label, "label_diagnostic.csv", row.names = FALSE)
 ```
+
+
 
 
